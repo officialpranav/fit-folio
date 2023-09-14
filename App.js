@@ -1,20 +1,26 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import "react-native-gesture-handler";
+import Main from "./src/Main";
+import { useFonts } from "expo-font";
+import { useCallback, useEffect, useState } from "react";
+import * as SplashScreen from "expo-splash-screen";
+import * as Font from "expo-font";
+import { View } from "react-native";
+import { Text } from "react-native";
 
 export default function App() {
+  const [loaded] = useFonts({
+    GoogleRegular: require("./assets/fonts/ProductSans-Regular.ttf"),
+    GoogleBold: require("./assets/fonts/ProductSans-Bold.ttf"),
+  });
+
+  if (!loaded) {
+    return null;
+  }
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaProvider>
+      <Main />
+    </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
