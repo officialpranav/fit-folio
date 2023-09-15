@@ -70,7 +70,7 @@ function ScheduleCard({ workout = "" }) {
         </>
       ) : (
         <>
-          <Text>
+          <Text style={styles.cardText}>
             You dont have a schedule yet. Create a schedule to get started!
           </Text>
           <Button icon="cog" mode="elevated">
