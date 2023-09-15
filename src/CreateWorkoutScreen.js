@@ -59,16 +59,6 @@ export default function CreateWorkoutScreen() {
           {workoutName}
         </Text>
       </View>
-      {/* <DraggableFlatList>
-        {workoutList.map((item) => (
-          <ExcerciseCard
-            name={item.name}
-            sets={item.sets}
-            reps={item.reps}
-            weight={item.weight}
-          />
-        ))}
-      </DraggableFlatList> */}
       <Button
         icon="plus"
         mode="contained-tonal"
