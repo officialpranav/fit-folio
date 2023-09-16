@@ -1,8 +1,10 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { FlatList, ScrollView } from "react-native-gesture-handler";
+import InputSpinner from "react-native-input-spinner";
 import {
   Button,
+  IconButton,
   Modal,
   Portal,
   Surface,
@@ -14,19 +16,38 @@ import {
 export default function CreateWorkoutScreen() {
   const [visible, setVisible] = React.useState(false);
   const [workoutName, setWorkoutName] = React.useState("Unnamed Workout");
+
   const [workoutList, setWorkoutList] = React.useState([]);
+  const handleAddExercise = () => {
+    setWorkoutList([
+      ...workoutList,
+      {
+        name: "Curls",
+        sets: 0,
+        reps: 0,
+        weight: 0,
+        index: workoutList.length,
+      },
+    ]);
+  };
+  const handleClearExercises = () => {
+    setWorkoutList([]);
+  };
 
   const showModal = () => setVisible(true);
   const hideModal = () => setVisible(false);
 
-  const { colors } = useTheme();
+  const { dark } = useTheme();
 
   return (
-    <View style={{ padding: 12 }}>
+    <View style={{ height: "100%" }}>
       <View
         style={{
-          borderBottomColor: colors.inversePrimary,
+          borderBottomColor: dark ? "white" : "black",
           borderBottomWidth: StyleSheet.hairlineWidth,
+          marginTop: 12,
+          marginLeft: 12,
+          marginRight: 12,
         }}
       >
         <Text
@@ -40,10 +61,20 @@ export default function CreateWorkoutScreen() {
           {workoutName}
         </Text>
       </View>
-      <ScrollView contentContainerStyle={{ gap: 12 }}>
+      <ScrollView
+        style={{ height: "100%" }}
+        contentContainerStyle={{
+          gap: 12,
+          padding: 12,
+        }}
+      >
         <Portal>
           <Modal visible={visible} onDismiss={hideModal}>
-            <Surface style={styles.surface} elevation={5} mode="flat">
+            <Surface
+              style={[styles.surface, { margin: 16 }]}
+              elevation={5}
+              mode="flat"
+            >
               <Text style={{ fontFamily: "GoogleBold", fontSize: 22 }}>
                 Rename Workout:
               </Text>
@@ -59,25 +90,14 @@ export default function CreateWorkoutScreen() {
             </Surface>
           </Modal>
         </Portal>
-        <ExerciseFlatList exercises={workoutList} />
-        <Button
-          icon="plus"
-          mode="contained-tonal"
-          onPress={() => {
-            setWorkoutList([
-              ...workoutList,
-              { name: "pushup", sets: 2, reps: 2, weight: 3 },
-            ]);
-          }}
-        >
+        <ExerciseList exercises={workoutList} />
+        <Button icon="plus" mode="contained-tonal" onPress={handleAddExercise}>
           Add an exercise
         </Button>
         <Button
           icon="plus"
           mode="contained-tonal"
-          onPress={() => {
-            setWorkoutList([]);
-          }}
+          onPress={handleClearExercises}
         >
           Clear
         </Button>
@@ -86,30 +106,127 @@ export default function CreateWorkoutScreen() {
   );
 }
 
-function ExcerciseCard({ name, sets, reps, weight }) {
+function SetCard() {
+  let { colors, dark } = useTheme();
+
   return (
-    <Surface style={styles.surface} elevation={4} mode="flat">
-      <Text style={styles.cardHeader}>{name}</Text>
-      <Text style={styles.cardText}>
-        {sets} sets of {reps} reps at {weight} lbs
-      </Text>
-    </Surface>
+    <View
+      style={{
+        flexDirection: "row",
+        margin: 4,
+        gap: 8,
+        alignItems: "center",
+        justifyContent: "space-evenly",
+      }}
+    >
+      <Text>Set 1</Text>
+      <InputSpinner
+        max={500}
+        skin="paper"
+        background="transparent"
+        textColor={dark ? "white" : "black"}
+        append={<Text>reps&nbsp;</Text>}
+        style={{
+          height: 40,
+          borderRadius: 20,
+          backgroundColor: colors.surface,
+        }}
+      />
+      <InputSpinner
+        max={9000}
+        type="float"
+        step={2.5}
+        skin="paper"
+        background="transparent"
+        textColor={dark ? "white" : "black"}
+        prepend={<Text>&nbsp;</Text>}
+        append={<Text>lbs&nbsp;&nbsp;</Text>}
+        style={{
+          height: 40,
+          borderRadius: 20,
+          backgroundColor: colors.surface,
+        }}
+      />
+    </View>
   );
 }
 
-function ExerciseFlatList({ exercises }) {
+function ExcerciseCard({ name, sets, reps, weight, index }) {
+  const [exerciseName, setExerciseName] = React.useState(name);
+  const [visible, setVisible] = React.useState(false);
+  const [numSets, setNumSets] = React.useState(1);
+
+  let { dark } = useTheme();
+
+  const hideModal = () => {
+    setVisible(false);
+  };
+  const showModal = () => setVisible(true);
+
   return (
-    <FlatList
-      data={exercises}
-      renderItem={({ item }) => (
+    <View>
+      <Portal>
+        <Modal visible={visible} onDismiss={hideModal}>
+          <Surface
+            style={[styles.surface, { margin: 16 }]}
+            elevation={5}
+            mode="flat"
+          >
+            <Text style={{ fontFamily: "GoogleBold", fontSize: 22 }}>
+              Rename Exercise:
+            </Text>
+            <TextInput
+              label="Enter a name for your exercise"
+              mode="outlined"
+              value={exerciseName}
+              onChangeText={setExerciseName}
+            ></TextInput>
+            <View style={styles.modal}>
+              <Button onPress={hideModal}>Ok</Button>
+            </View>
+          </Surface>
+        </Modal>
+      </Portal>
+      <Surface style={styles.surface} elevation={4} mode="flat">
+        <View>
+          <View
+            style={{
+              borderBottomColor: dark ? "white" : "black",
+              borderBottomWidth: StyleSheet.hairlineWidth,
+            }}
+          >
+            <Text style={styles.cardSubheader} onPress={showModal}>
+              {exerciseName}
+            </Text>
+          </View>
+          <View>{Array(numSets).fill(<SetCard />)}</View>
+          <Button
+            onPress={() => {
+              setNumSets(numSets + 1);
+            }}
+          >
+            Add a set
+          </Button>
+        </View>
+      </Surface>
+    </View>
+  );
+}
+
+function ExerciseList({ exercises }) {
+  return (
+    <View style={{ gap: 12 }}>
+      {exercises.map((exercise) => (
         <ExcerciseCard
-          name={item.name}
-          sets={item.sets}
-          reps={item.reps}
-          weight={item.weight}
+          name={exercise.name}
+          sets={exercise.sets}
+          reps={exercise.reps}
+          weight={exercise.weight}
+          index={exercise.index}
+          key={exercise.index}
         />
-      )}
-    />
+      ))}
+    </View>
   );
 }
 
@@ -122,5 +239,13 @@ const styles = StyleSheet.create({
   modal: {
     flexDirection: "row",
     justifyContent: "space-evenly",
+  },
+  cardSubheader: {
+    fontSize: 20,
+    fontFamily: "GoogleBold",
+  },
+  cardText: {
+    fontSize: 16,
+    fontFamily: "GoogleRegular",
   },
 });
