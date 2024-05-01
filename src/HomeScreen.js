@@ -13,7 +13,7 @@ export default function HomeScreen({ navigation }) {
         gap: 12,
       }}
     >
-      <ScheduleCard />
+      {/* <ScheduleCard /> */}
       <WorkoutCard exercises={[]} />
       <Button
         icon="plus"

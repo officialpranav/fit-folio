@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import { FlatList, ScrollView } from "react-native-gesture-handler";
 import InputSpinner from "react-native-input-spinner";
@@ -13,29 +13,57 @@ import {
   useTheme,
 } from "react-native-paper";
 
-export default function CreateWorkoutScreen() {
-  const [visible, setVisible] = React.useState(false);
+export default function CreateWorkoutScreen({ navigation, route }) {
+  const [workoutNamePortalVisible, setWorkoutNamePortalVisible] = React.useState(false);
+  const [exerciseNamePortalVisible, setExerciseNamePortalVisible] = React.useState(false);
+  const [selectedExerciseIndex, setSelectedExerciseIndex] = React.useState(0);
   const [workoutName, setWorkoutName] = React.useState("Unnamed Workout");
-
   const [workoutList, setWorkoutList] = React.useState([]);
-  const handleAddExercise = () => {
-    setWorkoutList([
-      ...workoutList,
-      {
-        name: "Curls",
-        sets: 0,
-        reps: 0,
-        weight: 0,
-        index: workoutList.length,
-      },
-    ]);
-  };
-  const handleClearExercises = () => {
-    setWorkoutList([]);
-  };
 
-  const showModal = () => setVisible(true);
-  const hideModal = () => setVisible(false);
+  function handleUpdateExercise(exerciseIndex, type, params = null) {
+    if(!workoutList[exerciseIndex]) return;
+
+    let currentWorkoutList;
+    switch (type) {
+      case "name":
+        setSelectedExerciseIndex(exerciseIndex);
+        setExerciseNamePortalVisible(true);
+        break;
+      case "addSet":
+        currentWorkoutList = [...workoutList];
+        currentWorkoutList[exerciseIndex].sets = [...currentWorkoutList[exerciseIndex].sets, {reps: 1, weight: 1}];
+        setWorkoutList(currentWorkoutList);
+        break;
+      case "changeReps":
+        currentWorkoutList = [...workoutList];
+        currentWorkoutList[exerciseIndex].reps = params.reps;
+        setWorkoutList(currentWorkoutList);
+        break;
+      case "changeWeight":
+        currentWorkoutList = [...workoutList];
+        currentWorkoutList[exerciseIndex].weight = params.weight;
+        setWorkoutList(currentWorkoutList);
+        break;
+      default:
+        break;
+    }
+  }
+
+  useEffect(() => {
+    if (route.params?.exercise) {
+      setWorkoutList([
+        ...workoutList,
+        {
+          name: route.params?.exercise,
+          sets: [{reps: 1, weight: 1}]
+        },
+      ]);
+    }
+
+  }, [route.params?.exercise])
+
+  const showModal = () => setWorkoutNamePortalVisible(true);
+  const hideModal = () => setWorkoutNamePortalVisible(false);
 
   const { dark } = useTheme();
 
@@ -69,7 +97,7 @@ export default function CreateWorkoutScreen() {
         }}
       >
         <Portal>
-          <Modal visible={visible} onDismiss={hideModal}>
+          <Modal visible={workoutNamePortalVisible} onDismiss={hideModal}>
             <Surface
               style={[styles.surface, { margin: 16 }]}
               elevation={5}
@@ -90,14 +118,46 @@ export default function CreateWorkoutScreen() {
             </Surface>
           </Modal>
         </Portal>
-        <ExerciseList exercises={workoutList} />
-        <Button icon="plus" mode="contained-tonal" onPress={handleAddExercise}>
+        <Portal>
+          <Modal visible={exerciseNamePortalVisible} onDismiss={() => { setExerciseNamePortalVisible(false) }}>
+            <Surface
+              style={[styles.surface, { margin: 16 }]}
+              elevation={5}
+              mode="flat"
+            >
+              <Text style={{ fontWeight: "bold", fontSize: 22 }}>
+                Rename Exercise:
+              </Text>
+              <TextInput
+                label="Enter a name for your exercise"
+                mode="outlined"
+                value={workoutList[selectedExerciseIndex]?.name || "unnamed"}
+                onChangeText={(value) => {
+                  if (workoutList[selectedExerciseIndex]) {
+                    let currentWorkoutList = [...workoutList];
+                    currentWorkoutList[selectedExerciseIndex].name = value;
+                    setWorkoutList(currentWorkoutList);
+                  }
+                }}
+              ></TextInput>
+              <View style={styles.modal}>
+                <Button onPress={() => { setExerciseNamePortalVisible(false) }}>Ok</Button>
+              </View>
+            </Surface>
+          </Modal>
+        </Portal>
+        <ExerciseList exercises={workoutList} handleUpdateExercise={handleUpdateExercise} />
+        <Button icon="plus" mode="contained-tonal" onPress={() => {
+          navigation.navigate("SelectExerciseScreen");
+        }}>
           Add an exercise
         </Button>
         <Button
           icon="plus"
           mode="contained-tonal"
-          onPress={handleClearExercises}
+          onPress={() => {
+            setWorkoutList([]);
+          }}
         >
           Clear
         </Button>
@@ -106,7 +166,7 @@ export default function CreateWorkoutScreen() {
   );
 }
 
-function SetCard() {
+function SetCard({ set, setIndex, exerciseIndex, handleUpdateExercise }) {
   let { colors, dark } = useTheme();
 
   return (
@@ -119,8 +179,9 @@ function SetCard() {
         justifyContent: "space-evenly",
       }}
     >
-      <Text>Set 1</Text>
+      <Text>Set {setIndex + 1}</Text>
       <InputSpinner
+        value={set.reps}
         max={500}
         skin="paper"
         background="transparent"
@@ -131,8 +192,12 @@ function SetCard() {
           borderRadius: 20,
           backgroundColor: colors.surface,
         }}
+        onChange={(num) => {
+          handleUpdateExercise(exerciseIndex, "changeReps", { reps: num });
+        }}
       />
       <InputSpinner
+        value={set.weight}
         max={9000}
         type="float"
         step={2.5}
@@ -146,84 +211,59 @@ function SetCard() {
           borderRadius: 20,
           backgroundColor: colors.surface,
         }}
+        onChange={(num) => {
+          handleUpdateExercise(exerciseIndex, "changeWeight", { reps: num });
+        }}
       />
     </View>
   );
 }
 
-function ExcerciseCard({ name, sets, reps, weight, index }) {
-  const [exerciseName, setExerciseName] = React.useState(name);
-  const [visible, setVisible] = React.useState(false);
-  const [numSets, setNumSets] = React.useState(1);
-
-  let { dark } = useTheme();
-
-  const hideModal = () => {
-    setVisible(false);
-  };
-  const showModal = () => setVisible(true);
+function ExcerciseCard({ name, sets, handleUpdateExercise, exerciseIndex }) {
+  const { colors, dark } = useTheme();
 
   return (
     <View>
-      <Portal>
-        <Modal visible={visible} onDismiss={hideModal}>
-          <Surface
-            style={[styles.surface, { margin: 16 }]}
-            elevation={5}
-            mode="flat"
-          >
-            <Text style={{ fontWeight: "bold", fontSize: 22 }}>
-              Rename Exercise:
-            </Text>
-            <TextInput
-              label="Enter a name for your exercise"
-              mode="outlined"
-              value={exerciseName}
-              onChangeText={setExerciseName}
-            ></TextInput>
-            <View style={styles.modal}>
-              <Button onPress={hideModal}>Ok</Button>
-            </View>
-          </Surface>
-        </Modal>
-      </Portal>
       <Surface style={styles.surface} elevation={4} mode="flat">
-        <View>
-          <View
-            style={{
-              borderBottomColor: dark ? "white" : "black",
-              borderBottomWidth: StyleSheet.hairlineWidth,
-            }}
-          >
-            <Text style={styles.cardSubheader} onPress={showModal}>
-              {exerciseName}
-            </Text>
-          </View>
-          <View>{Array(numSets).fill(<SetCard />)}</View>
-          <Button
-            onPress={() => {
-              setNumSets(numSets + 1);
-            }}
-          >
-            Add a set
-          </Button>
+        <View
+          style={{
+            borderBottomColor: dark ? "white" : "black",
+            borderBottomWidth: StyleSheet.hairlineWidth,
+          }}
+        >
+          <Text style={styles.cardSubheader} onPress={() => {
+            handleUpdateExercise(exerciseIndex, "name")
+          }}>
+            {name}
+          </Text>
         </View>
+        <View>{
+          sets.map((set, index) => (
+            <SetCard set={set} exerciseIndex={exerciseIndex} key={index} setIndex={index} handleUpdateExercise={handleUpdateExercise}/>
+          ))
+        }</View>
+        <Button
+          onPress={() => {
+            handleUpdateExercise(exerciseIndex, "addSet");
+          }}
+        >
+          Add a set
+        </Button>
       </Surface>
     </View>
   );
 }
 
-function ExerciseList({ exercises }) {
+function ExerciseList({ exercises, handleUpdateExercise }) {
   return (
     <View style={{ gap: 12 }}>
-      {exercises.map((exercise) => (
+      {exercises.map((exercise, index) => (
         <ExcerciseCard
           name={exercise.name}
           sets={exercise.sets}
-          reps={exercise.reps}
-          weight={exercise.weight}
-          index={exercise.index}
-          key={exercise.index}
+          exerciseIndex={index}
+          key={index}
+          handleUpdateExercise={handleUpdateExercise}
         />
       ))}
     </View>

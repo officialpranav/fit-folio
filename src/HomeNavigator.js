@@ -1,6 +1,6 @@
 import { createStackNavigator } from "@react-navigation/stack";
 import HomeScreen from "./HomeScreen";
-import CreateWorkoutScreen from "./CreateWorkoutScreen";
+import CreateWorkoutStackNavigator from "./CreateWorkoutNavigator";
 
 export default function HomeStackNavigator() {
   const Stack = createStackNavigator();
@@ -8,7 +8,7 @@ export default function HomeStackNavigator() {
   return (
     <Stack.Navigator initialRouteName="Home">
       <Stack.Screen name="Home" component={HomeScreen} />
-      <Stack.Screen name="CreateWorkout" component={CreateWorkoutScreen} />
+      <Stack.Screen name="CreateWorkout" component={CreateWorkoutStackNavigator} />
     </Stack.Navigator>
   );
 }
