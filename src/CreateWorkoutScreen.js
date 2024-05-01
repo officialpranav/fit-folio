@@ -54,7 +54,7 @@ export default function CreateWorkoutScreen() {
           key="workoutName"
           onPress={showModal}
           style={{
-            fontFamily: "GoogleBold",
+            fontWeight: "bold",
             fontSize: 35,
           }}
         >
@@ -75,7 +75,7 @@ export default function CreateWorkoutScreen() {
               elevation={5}
               mode="flat"
             >
-              <Text style={{ fontFamily: "GoogleBold", fontSize: 22 }}>
+              <Text style={{ fontWeight: "bold", fontSize: 22 }}>
                 Rename Workout:
               </Text>
               <TextInput
@@ -172,7 +172,7 @@ function ExcerciseCard({ name, sets, reps, weight, index }) {
             elevation={5}
             mode="flat"
           >
-            <Text style={{ fontFamily: "GoogleBold", fontSize: 22 }}>
+            <Text style={{ fontWeight: "bold", fontSize: 22 }}>
               Rename Exercise:
             </Text>
             <TextInput
@@ -242,10 +242,9 @@ const styles = StyleSheet.create({
   },
   cardSubheader: {
     fontSize: 20,
-    fontFamily: "GoogleBold",
+    fontWeight: "bold",
   },
   cardText: {
     fontSize: 16,
-    fontFamily: "GoogleRegular",
   },
 });

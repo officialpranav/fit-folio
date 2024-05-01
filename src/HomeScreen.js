@@ -100,7 +100,6 @@ function OverviewCard() {
             {/*Implement logic*/}
             <Text
               style={{
-                fontFamily: "GoogleRegular",
                 fontSize: 40,
               }}
             >
@@ -147,15 +146,13 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     fontSize: 24,
-    fontFamily: "GoogleBold",
+    fontWeight: "bold",
   },
   cardSubheader: {
     fontSize: 20,
-    fontFamily: "GoogleBold",
   },
   cardText: {
     fontSize: 16,
-    fontFamily: "GoogleRegular",
   },
   button: {
     width: "100%",
